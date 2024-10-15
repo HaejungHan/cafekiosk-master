@@ -46,4 +46,22 @@ public class MemberDAO {
         }
         return false;
     }
+
+    public int authenticateAdmin(String username, String password) {
+        String sql = "SELECT auth FROM Member WHERE memberId = ? AND password = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("auth"); // auth 값을 반환
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0; // 인증 실패 시 0 반환
+    }
 }

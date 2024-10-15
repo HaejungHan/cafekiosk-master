@@ -55,10 +55,10 @@ public class CafeController {
         return service.registerMember(member);
     }
 
-    public void registerAuth(String id, String pwd) {
-        MemberDTO member = new MemberDTO(0, id, pwd, 1);
-        service.registerMember(member);
-    }
+//    public void registerAuth(String id, String pwd) {
+//        MemberDTO member = new MemberDTO(0, id, pwd, 1);
+//        service.registerMember(member);
+//    }
 
     public int createOrder(int memberId, List<OrderItemDTO> orderItems) {
         OrderDTO order = new OrderDTO(0, memberId, LocalDateTime.now(), orderItems);
@@ -81,6 +81,22 @@ public class CafeController {
 
     public boolean isMemberExists(int memberId) {
         return service.isMemberExists(memberId);
+    }
+
+    public boolean authenticateAdmin(String username, String password) {
+        return service.isAdminAuthenticated(username, password); // 파라미터 선언 수정
+    }
+
+    public List<OrderItemDTO> getAllOrderItems() {
+        return service.getAllOrderItems();
+    }
+
+    public void deleteMenu(String menuName) {
+        service.deleteMenu(menuName);
+    }
+
+    public void addMenu(MenuDTO menu) {
+        service.addMenu(menu);
     }
 }
 

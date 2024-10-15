@@ -18,8 +18,9 @@ public class OrderItemDTO {
     public OrderItemDTO() {
     }
     // 생성자
-    public OrderItemDTO(int menuId, int quantity, String temperature, BigDecimal totalPrice, OrderType orderType) {
-        this.menuId = menuId;
+    public OrderItemDTO(int orderId, String menuName, int quantity, String temperature, BigDecimal totalPrice, OrderType orderType) {
+        this.orderId = orderId;
+        this.menuName = menuName;
         this.quantity = quantity;
         this.temperature = temperature;
         this.totalPrice = totalPrice;
@@ -47,32 +48,20 @@ public class OrderItemDTO {
         return menuId;
     }
 
-    public void setMenuId(int menuId) {
-        this.menuId = menuId;
-    }
-
     public int getQuantity() {
         return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
     }
 
     public String getTemperature() {
         return temperature;
     }
 
-    public void setTemperature(String temperature) {
-        this.temperature = temperature;
-    }
-
     public BigDecimal getTotalPrice() {
         return totalPrice;
     }
 
-    public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
+    public String getMenuName() {
+        return menuName;
     }
 
     public String getMenuNameById(int menuId) {// 현재 메뉴 ID 설정

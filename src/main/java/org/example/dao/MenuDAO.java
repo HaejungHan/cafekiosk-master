@@ -60,4 +60,35 @@ public class MenuDAO {
         return menuName;
     }
 
+
+    public void insertMenu(MenuDTO menu) {
+        String sql = "INSERT INTO menu (name, price, category, imagePath) VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, menu.getName());
+            pstmt.setBigDecimal(2, menu.getPrice());
+            pstmt.setString(3, menu.getCategory().name()); // Enum을 문자열로 변환
+            pstmt.setString(4, menu.getImagePath());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void removeMenu(String menuName) {
+        String sql = "DELETE FROM menu WHERE name = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, menuName);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
+
+

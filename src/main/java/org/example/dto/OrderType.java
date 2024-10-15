@@ -10,13 +10,19 @@ public enum OrderType {
         this.value = value;
     }
 
+    public String getValue() {
+        return value;
+    }
+
     @Override
-    public String toString() { return this.value; }
+    public String toString() {
+        return this.value;
+    }
 
     public static OrderType fromString(String value) {
-        if (value == null || value.length() == 0) {
+        if (value != null) {
             for (OrderType orderType : OrderType.values()) {
-                if (orderType.value.equals(value)) {
+                if (orderType.getValue().equalsIgnoreCase(value)) {
                     return orderType;
                 }
             }

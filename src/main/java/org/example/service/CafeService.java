@@ -52,4 +52,24 @@ public class CafeService {
         return memberDAO.isMemberExists(memberId);
     }
 
+    public boolean isAdminAuthenticated(String username, String password) {
+        int auth = memberDAO.authenticateAdmin(username, password);
+        if(auth == 0) {
+            throw new IllegalArgumentException("관리자 권한이 없습니다.");
+        }
+        return true;
+    }
+
+    public List<OrderItemDTO> getAllOrderItems() {
+        return orderItemDAO.getAllOrderItems();
+    }
+
+    public void deleteMenu(String menuName) {
+        menuDAO.removeMenu(menuName);
+    }
+
+    public void addMenu(MenuDTO menu) {
+        menuDAO.insertMenu(menu);
+    }
+
 }

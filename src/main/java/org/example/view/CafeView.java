@@ -9,6 +9,7 @@ import org.example.dto.OrderItemDTO;
 import org.example.dto.OrderType;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -22,6 +23,7 @@ public class CafeView extends JFrame {
     private DefaultListModel<MenuDTO> menuListModel;
     private DefaultListModel<OrderItemDTO> cartListModel;
     private OrderType currentOrderType;
+    private DefaultTableModel cartTableModel;
 
     public CafeView() {
         setTitle("카페 키오스크");
@@ -31,62 +33,74 @@ public class CafeView extends JFrame {
         menuListModel = new DefaultListModel<>();
         cartListModel = new DefaultListModel<>();
 
-        // Main panel with BorderLayout
         JPanel mainPanel = new JPanel(new BorderLayout());
 
-        // Initialize the button panel for Takeout and Eat In
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(1, 2, 10, 10)); // 2 buttons in a grid
+        buttonPanel.setLayout(new GridLayout(1, 2, 10, 10));
 
-        // Create Takeout and Eat In buttons
         JButton takeoutButton = createStyledButton("Takeout");
         JButton eatInButton = createStyledButton("Eat In");
 
-        // Add action listeners
         takeoutButton.addActionListener(e -> {
-            currentOrderType = OrderType.TAKEOUT; // Set order type to Takeout
+            currentOrderType = OrderType.TAKEOUT;
             openMenuView();
         });
 
         eatInButton.addActionListener(e -> {
-            currentOrderType = OrderType.EATIN; // Set order type to Eat In
+            currentOrderType = OrderType.EATIN;
             openMenuView();
         });
 
-        // Add buttons to the button panel
         buttonPanel.add(takeoutButton);
         buttonPanel.add(eatInButton);
 
-        // Add button panel to the center of the main panel
         mainPanel.add(buttonPanel, BorderLayout.CENTER);
 
-        // Create and style the Admin button
         JButton adminButton = new JButton("Admin");
-        adminButton.setFont(new Font("Arial", Font.PLAIN, 14)); // Smaller font size
-        adminButton.setPreferredSize(new Dimension(100, 40)); // Smaller button size
+        adminButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        adminButton.setPreferredSize(new Dimension(100, 40));
         adminButton.setBackground(Color.LIGHT_GRAY);
         adminButton.setForeground(Color.BLACK);
         adminButton.setFocusPainted(false);
         adminButton.setBorder(BorderFactory.createEtchedBorder());
 
-        // Create a panel for the Admin button and add it to the top right
+        adminButton.addActionListener(e -> {
+            // AdminView를 열기
+            new AdminView(controller); // controller를 AdminView에 전달
+        });
+
         JPanel adminPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         adminPanel.add(adminButton);
         mainPanel.add(adminPanel, BorderLayout.NORTH);
 
-        // Add the main panel to the frame
         add(mainPanel);
         setVisible(true);
     }
 
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.BOLD, 24)); // Set font size
-        button.setPreferredSize(new Dimension(250, 100)); // Set button size
-        button.setBackground(Color.LIGHT_GRAY); // Set background color
-        button.setForeground(Color.BLACK); // Set text color
-        button.setFocusPainted(false); // Remove focus outline
-        button.setBorder(BorderFactory.createEtchedBorder()); // Set border style
+        button.setFont(new Font("SansSerif", Font.BOLD, 18)); // 글꼴 크기 조정
+        button.setBackground(new Color(70, 130, 180)); // 기본 색상
+        button.setForeground(Color.WHITE); // 글자 색상
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder()); // 경계선 제거
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // 손가락 커서
+        button.setPreferredSize(new Dimension(100, 40)); // 크기 조정
+        button.setOpaque(true); // 불투명하게 설정
+
+        // 마우스 이벤트 리스너로 색상 변경 효과 추가
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(100, 149, 237)); // 마우스 오버 시 색상 변경
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(70, 130, 180)); // 원래 색상으로 복원
+            }
+        });
+
         return button;
     }
 
@@ -95,26 +109,37 @@ public class CafeView extends JFrame {
         getContentPane().removeAll();
         setTitle("주문 메뉴");
 
+        // 전체 프레임 크기 조정
+        setPreferredSize(new Dimension(900, 600)); // 너비를 넓히고 높이 설정
+
         // 메뉴 패널 생성
         JPanel menuPanel = new JPanel();
-        menuPanel.setLayout(new GridLayout(3, 3, 8, 10)); // 3행 3열 설정, 카드 간의 간격 추가
+        menuPanel.setLayout(new GridLayout(3, 3, 20, 20)); // 3행 3열 설정, 카드 간의 간격 추가
 
-        // 장바구니 패널 생성
+        // 장바구니 데이터 모델 및 테이블 생성
+        cartTableModel = new DefaultTableModel(new Object[]{"주문 내역"}, 0); // 열 제목 수정
+        JTable cartTable = new JTable(cartTableModel);
+        JScrollPane cartScrollPane = new JScrollPane(cartTable); // 스크롤 가능하게 설정
+        cartScrollPane.setPreferredSize(new Dimension(450, 400)); // 스크롤 패널 크기 조정
+
         JPanel cartPanel = new JPanel();
-        cartPanel.setLayout(new BoxLayout(cartPanel, BoxLayout.Y_AXIS)); // 세로로 쌓기
+        cartPanel.setLayout(new BorderLayout()); // 테이블을 위한 레이아웃
         cartPanel.setBorder(BorderFactory.createTitledBorder("주문내역")); // 테두리 추가
-        cartPanel.setBackground(Color.LIGHT_GRAY); // 배경색 설정
-        cartPanel.setPreferredSize(new Dimension(550, 400)); // 크기 설정
+        cartPanel.setBackground(new Color(240, 248, 255)); // 연한 하늘색 배경으로 변경
 
-        JLabel cartLabel = new JLabel("장바구니");
-        cartLabel.setFont(new Font("SansSerif", Font.BOLD, 16)); // 글꼴 스타일
-        cartLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT); // 가운데 정렬
-        cartPanel.add(cartLabel);
+// 테두리 스타일을 설정하여 둥글게 만들기
+        cartPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(100, 149, 237), 2),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10) // 내부 여백 추가
+        ));
 
-        JList<OrderItemDTO> cartList = new JList<>(cartListModel); // 장바구니 리스트
-        JScrollPane cartScrollPane = new JScrollPane(cartList); // 스크롤 가능하게 설정
-        cartScrollPane.setPreferredSize(new Dimension(240, 300)); // 스크롤 패널 크기 조정
-        cartPanel.add(cartScrollPane); // 장바구니 리스트 추가
+// 테이블 추가
+        cartPanel.add(cartScrollPane, BorderLayout.CENTER);
+
+        // 장바구니 제목
+        JLabel cartLabel = new JLabel("장바구니", JLabel.CENTER);
+        cartLabel.setFont(new Font("SansSerif", Font.BOLD, 18)); // 글꼴 스타일
+        cartPanel.add(cartLabel, BorderLayout.NORTH); // 제목 추가
 
         // 메뉴 데이터 가져오기
         List<MenuDTO> menus = controller.loadMenus(); // 메뉴 데이터 로드
@@ -124,44 +149,44 @@ public class CafeView extends JFrame {
             JPanel cardPanel = new JPanel();
             cardPanel.setLayout(new BorderLayout());
             cardPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2)); // 카드 테두리
-            cardPanel.setPreferredSize(new Dimension(150, 150)); // 카드 크기 조정
             cardPanel.setBackground(Color.WHITE); // 카드 배경색 설정
             cardPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // 카드 내부 여백 추가
 
             // 메뉴 이미지 로드
             String imagePath = "/images/" + menu.getImagePath(); // 리소스 경로
             ImageIcon originalIcon = new ImageIcon(getClass().getResource(imagePath));
-            Image scaledImage = originalIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH); // 이미지 크기 조정
+            Image scaledImage = originalIcon.getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH); // 이미지 크기 조정
             ImageIcon imageIcon = new ImageIcon(scaledImage);
 
             // 이미지 레이블 설정
             JLabel imageLabel = new JLabel(imageIcon);
             imageLabel.setHorizontalAlignment(JLabel.CENTER);
+            imageLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0)); // 이미지 상하 여백 추가
 
             // 이름과 가격 레이블을 위한 패널 생성
             JPanel textPanel = new JPanel();
             textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS)); // 세로로 쌓기
             textPanel.setAlignmentX(JComponent.CENTER_ALIGNMENT); // 가운데 정렬
+            textPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0)); // 내부 여백 조정
 
             // 메뉴 이름 표시
             JLabel nameLabel = new JLabel(menu.getName(), JLabel.CENTER);
-            nameLabel.setFont(new Font("SansSerif", Font.BOLD, 13)); // 이름 글꼴 스타일 변경
-            nameLabel.setHorizontalAlignment(JLabel.CENTER); // 가운데 정렬
+            nameLabel.setFont(new Font("SansSerif", Font.BOLD, 14)); // 이름 글꼴 스타일 변경
             textPanel.add(nameLabel); // 이름 추가
 
             // 가격 표시
             JLabel priceLabel = new JLabel(menu.getPrice().toPlainString() + "원", JLabel.CENTER); // 가격 표시
-            priceLabel.setFont(new Font("SansSerif", Font.PLAIN, 10)); // 가격 글꼴 스타일 변경
-            priceLabel.setHorizontalAlignment(JLabel.CENTER); // 가운데 정렬
+            priceLabel.setFont(new Font("SansSerif", Font.PLAIN, 12)); // 가격 글꼴 스타일 변경
             textPanel.add(priceLabel); // 가격 추가
 
             // 주문하기 버튼
             JButton orderButton = new JButton("주문하기");
             orderButton.setFont(new Font("SansSerif", Font.PLAIN, 12)); // 버튼 글꼴 스타일 변경
-            orderButton.setBackground(Color.LIGHT_GRAY); // 버튼 배경색
+            orderButton.setBackground(new Color(100, 149, 237)); // 버튼 배경색 (코넬리안 블루)
+            orderButton.setForeground(Color.WHITE); // 글자색 흰색
+            orderButton.setFocusPainted(false); // 포커스 효과 제거
             orderButton.addActionListener(e -> {
                 addToCart(menu); // 메뉴를 카트에 추가
-                displayCart();
             });
             textPanel.add(orderButton); // 버튼을 textPanel에 추가하여 메뉴 이름 아래에 위치
 
@@ -176,11 +201,17 @@ public class CafeView extends JFrame {
         // 결제하기 버튼 추가
         JButton paymentButton = new JButton("결제하기");
         paymentButton.setFont(new Font("SansSerif", Font.BOLD, 14));
-        paymentButton.setBackground(Color.WHITE);
+        paymentButton.setBackground(new Color(100, 149, 237)); // 버튼 배경색
+        paymentButton.setForeground(Color.WHITE); // 글자색 흰색
         paymentButton.addActionListener(e -> processPayment()); // 결제 메서드 호출
 
-        // 장바구니 패널에 결제하기 버튼 추가
-        cartPanel.add(paymentButton);
+        // 결제 및 뒤로가기 버튼을 패널에 추가
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10)); // 버튼을 중앙에 배치
+        buttonPanel.add(paymentButton);
+
+        // 장바구니 패널에 버튼 패널 추가
+        cartPanel.add(buttonPanel, BorderLayout.SOUTH); // 버튼을 하단에 배치
 
         // 메뉴 패널과 장바구니 패널을 JFrame에 추가
         JPanel mainPanel = new JPanel(new BorderLayout());
@@ -191,6 +222,7 @@ public class CafeView extends JFrame {
         revalidate(); // 레이아웃 재조정
         repaint(); // 화면 업데이트
     }
+
 
     // 결제 처리 메서드
     private void processPayment() {
@@ -241,7 +273,6 @@ public class CafeView extends JFrame {
 
 
             for (OrderItemDTO orderItem : orderItems) {
-                // orderId를 orderItem에 설정해야 합니다.
                 orderItem.setOrderId(orderId);
                 controller.createOrderItem(orderItem); // 주문 항목 추가
             }
@@ -261,16 +292,6 @@ public class CafeView extends JFrame {
         }
     }
 
-
-
-
-    private void openLoginView() {
-        // 로그인 창 열기
-        String memberId = JOptionPane.showInputDialog("회원 ID:");
-        String password = JOptionPane.showInputDialog("비밀번호:");
-        controller.login(memberId, password);
-    }
-
     public void setController(CafeController controller) {
         this.controller = controller;
     }
@@ -285,15 +306,8 @@ public class CafeView extends JFrame {
     public void updateCart() {
         cartListModel.clear(); // 현재 리스트 비우기
         for (OrderItemDTO item : cart) {
-            cartListModel.addElement(item); // toString() 사용
+            cartListModel.addElement(item);
         }
-    }
-
-    private void registerAuth() {
-        String memberId = JOptionPane.showInputDialog("회원 ID:");
-        String password = JOptionPane.showInputDialog("비밀번호:");
-        String authStr = JOptionPane.showInputDialog("권한(0 또는 1):");
-        controller.registerAuth(memberId, password);
     }
 
     private void addToCart(MenuDTO menu) {
@@ -304,43 +318,28 @@ public class CafeView extends JFrame {
 
             BigDecimal totalPrice = menu.getPrice().multiply(BigDecimal.valueOf(quantity));
 
-            // Create OrderItemDTO with the order type
             OrderItemDTO orderItem = new OrderItemDTO();
             orderItem.initializeOrderItem(menu.getId(), quantity, temperature, totalPrice, menu.getName(), currentOrderType);
 
-            cart.add(orderItem); // Add to cart
+            cart.add(orderItem);
 
-            // Show total price
-            JOptionPane.showMessageDialog(null, "총 가격: " + totalPrice.toString() + "원", "총 가격", JOptionPane.INFORMATION_MESSAGE);
+            // 장바구니에 추가할 문자열 생성
+            String orderDetails = "메뉴명: " + menu.getName() +
+                    ", 수량: " + quantity +
+                    ", 온도: " + temperature +
+                    ", 주문타입: " + currentOrderType +
+                    ", 총 가격: " + totalPrice.toPlainString() + "원";
 
-            updateCart(); // Update cart UI
+            // 장바구니 테이블에 추가
+            cartTableModel.addRow(new Object[]{orderDetails});
+
+            JOptionPane.showMessageDialog(null, "주문이 장바구니에 추가되었습니다.", "주문 추가", JOptionPane.INFORMATION_MESSAGE);
+            updateCart();
         } else {
             showMessage("메뉴를 선택하세요.");
         }
     }
 
-    public void displayCart() {
-        for (int i = 0; i < cartListModel.getSize(); i++) {
-            OrderItemDTO item = (OrderItemDTO) cartListModel.getElementAt(i);
-            System.out.println(item.toString()); // 출력
-        }
-    }
-
-//    private void order() {
-//        String memberIdStr = JOptionPane.showInputDialog("회원 ID:");
-//        int memberId = Integer.parseInt(memberIdStr);
-//
-//        List<OrderItemDTO> orderItems = new ArrayList<>();
-//
-//        // 장바구니 항목 가져오기
-//        for (int i = 0; i < cartListModel.getSize(); i++) {
-//            OrderItemDTO orderItem = cartListModel.getElementAt(i);
-//            orderItems.add(orderItem);
-//        }
-//
-//        // 주문 생성
-//        controller.createOrder(memberId, orderItems);
-//    }
 
     public void showMessage(String message) {
         JOptionPane.showMessageDialog(this, message);
