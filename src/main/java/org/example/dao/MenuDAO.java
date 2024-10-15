@@ -89,6 +89,36 @@ public class MenuDAO {
             e.printStackTrace();
         }
     }
+
+    public List<MenuDTO> loadMenusByCategory(Category category) {
+        List<MenuDTO> menuList = new ArrayList<>();
+        String sql = "SELECT * FROM Menu WHERE category = ?"; // 카테고리별 메뉴를 조회하는 쿼리
+
+        try (Connection conn = DBConnection.getConnection(); // 데이터 소스에서 연결
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, category.name()); // 카테고리 값을 설정
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    // 결과를 MenuDTO 객체로 변환
+                    MenuDTO menu = new MenuDTO(
+                            rs.getInt("id"), // ID 열
+                            rs.getString("name"), // 이름 열
+                            rs.getBigDecimal("price"), // 가격 열
+                            Category.valueOf(rs.getString("category")), // 카테고리 열
+                            rs.getString("imagePath") // 이미지 경로 열
+                    );
+                    menuList.add(menu); // 리스트에 추가
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // 예외 처리
+        }
+
+        return menuList; // 카테고리별 메뉴 목록 반환
+    }
 }
 
 

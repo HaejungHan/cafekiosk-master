@@ -3,10 +3,7 @@ package org.example.view;
 
 import org.example.controller.CafeController;
 import org.example.database.DBConnection;
-import org.example.dto.MemberDTO;
-import org.example.dto.MenuDTO;
-import org.example.dto.OrderItemDTO;
-import org.example.dto.OrderType;
+import org.example.dto.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -24,6 +21,9 @@ public class CafeView extends JFrame {
     private DefaultListModel<OrderItemDTO> cartListModel;
     private OrderType currentOrderType;
     private DefaultTableModel cartTableModel;
+    private JPanel categoryPanel; // 카테고리 패널
+    private JComboBox<Category> categoryComboBox; // 카테고리 콤보 박스
+    private JPanel menuPanel; // 메뉴 패널
 
     public CafeView() {
         setTitle("카페 키오스크");
@@ -109,120 +109,139 @@ public class CafeView extends JFrame {
         getContentPane().removeAll();
         setTitle("주문 메뉴");
 
-        // 전체 프레임 크기 조정
-        setPreferredSize(new Dimension(900, 600)); // 너비를 넓히고 높이 설정
+        // 카테고리 선택 패널 생성
+        categoryPanel = new JPanel();
+        categoryComboBox = new JComboBox<>(Category.values());
+        categoryComboBox.setSelectedIndex(0);
+        categoryComboBox.addActionListener(e -> loadMenusBySelectedCategory());
+        categoryPanel.add(new JLabel("카테고리 선택:"));
+        categoryPanel.add(categoryComboBox);
 
-        // 메뉴 패널 생성
-        JPanel menuPanel = new JPanel();
-        menuPanel.setLayout(new GridLayout(3, 3, 20, 20)); // 3행 3열 설정, 카드 간의 간격 추가
+        // 전체 프레임 크기 조정
+        setPreferredSize(new Dimension(900, 600));
+
+        // 메뉴 패널 생성 및 클래스 필드에 저장
+        menuPanel = new JPanel();
+        menuPanel.setLayout(new GridLayout(0, 3, 20, 20)); // 3열로 설정
 
         // 장바구니 데이터 모델 및 테이블 생성
-        cartTableModel = new DefaultTableModel(new Object[]{"주문 내역"}, 0); // 열 제목 수정
+        cartTableModel = new DefaultTableModel(new Object[]{"주문 내역"}, 0);
         JTable cartTable = new JTable(cartTableModel);
-        JScrollPane cartScrollPane = new JScrollPane(cartTable); // 스크롤 가능하게 설정
-        cartScrollPane.setPreferredSize(new Dimension(450, 400)); // 스크롤 패널 크기 조정
+        JScrollPane cartScrollPane = new JScrollPane(cartTable);
+        cartScrollPane.setPreferredSize(new Dimension(450, 400));
 
         JPanel cartPanel = new JPanel();
-        cartPanel.setLayout(new BorderLayout()); // 테이블을 위한 레이아웃
-        cartPanel.setBorder(BorderFactory.createTitledBorder("주문내역")); // 테두리 추가
-        cartPanel.setBackground(new Color(240, 248, 255)); // 연한 하늘색 배경으로 변경
+        cartPanel.setLayout(new BorderLayout());
+        cartPanel.setBorder(BorderFactory.createTitledBorder("주문내역"));
+        cartPanel.setBackground(new Color(240, 248, 255));
 
-// 테두리 스타일을 설정하여 둥글게 만들기
-        cartPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(100, 149, 237), 2),
-                BorderFactory.createEmptyBorder(10, 10, 10, 10) // 내부 여백 추가
-        ));
+        // 메뉴 데이터 로드
+        loadMenusBySelectedCategory();
 
-// 테이블 추가
+        // 장바구니 패널에 테이블 추가
         cartPanel.add(cartScrollPane, BorderLayout.CENTER);
 
         // 장바구니 제목
         JLabel cartLabel = new JLabel("장바구니", JLabel.CENTER);
-        cartLabel.setFont(new Font("SansSerif", Font.BOLD, 18)); // 글꼴 스타일
-        cartPanel.add(cartLabel, BorderLayout.NORTH); // 제목 추가
+        cartLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
+        cartPanel.add(cartLabel, BorderLayout.NORTH);
 
-        // 메뉴 데이터 가져오기
-        List<MenuDTO> menus = controller.loadMenus(); // 메뉴 데이터 로드
+        // 결제하기 버튼 추가
+        JButton paymentButton = new JButton("결제하기");
+        paymentButton.setFont(new Font("SansSerif", Font.BOLD, 14));
+        paymentButton.setBackground(new Color(100, 149, 237));
+        paymentButton.setForeground(Color.WHITE);
+        paymentButton.addActionListener(e -> processPayment());
 
+        // 결제 및 버튼 패널 추가
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.add(paymentButton);
+        cartPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        // 메인 패널 생성
+        JPanel mainPanel = new JPanel(new BorderLayout());
+
+        // 카테고리 패널을 상단에 추가
+        JPanel categoryContainer = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        categoryContainer.add(categoryPanel);
+        mainPanel.add(categoryContainer, BorderLayout.NORTH);
+
+        // 메뉴 패널을 중간에 추가
+        mainPanel.add(new JScrollPane(menuPanel), BorderLayout.CENTER);
+
+        // 장바구니 패널을 오른쪽에 추가
+        mainPanel.add(cartPanel, BorderLayout.EAST);
+
+        add(mainPanel);
+        revalidate();
+        repaint();
+    }
+
+    private void loadMenusBySelectedCategory() {
+        // 기존 메뉴 패널의 내용을 초기화
+        menuPanel.removeAll(); // 이 줄을 추가합니다.
+
+        Category selectedCategory = (Category) categoryComboBox.getSelectedItem();
+        List<MenuDTO> menus = controller.loadMenusByCategory(selectedCategory);
+
+        // 메뉴 패널에 카드 추가
         for (MenuDTO menu : menus) {
             // 카드 형태의 패널 생성
             JPanel cardPanel = new JPanel();
             cardPanel.setLayout(new BorderLayout());
-            cardPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2)); // 카드 테두리
-            cardPanel.setBackground(Color.WHITE); // 카드 배경색 설정
-            cardPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // 카드 내부 여백 추가
+            cardPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
+            cardPanel.setBackground(Color.WHITE);
+            cardPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
             // 메뉴 이미지 로드
-            String imagePath = "/images/" + menu.getImagePath(); // 리소스 경로
+            String imagePath = "/images/" + menu.getImagePath();
             ImageIcon originalIcon = new ImageIcon(getClass().getResource(imagePath));
-            Image scaledImage = originalIcon.getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH); // 이미지 크기 조정
+            Image scaledImage = originalIcon.getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH);
             ImageIcon imageIcon = new ImageIcon(scaledImage);
 
             // 이미지 레이블 설정
             JLabel imageLabel = new JLabel(imageIcon);
             imageLabel.setHorizontalAlignment(JLabel.CENTER);
-            imageLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0)); // 이미지 상하 여백 추가
+            imageLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
 
             // 이름과 가격 레이블을 위한 패널 생성
             JPanel textPanel = new JPanel();
-            textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS)); // 세로로 쌓기
-            textPanel.setAlignmentX(JComponent.CENTER_ALIGNMENT); // 가운데 정렬
-            textPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0)); // 내부 여백 조정
+            textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+            textPanel.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+            textPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
             // 메뉴 이름 표시
             JLabel nameLabel = new JLabel(menu.getName(), JLabel.CENTER);
-            nameLabel.setFont(new Font("SansSerif", Font.BOLD, 14)); // 이름 글꼴 스타일 변경
-            textPanel.add(nameLabel); // 이름 추가
+            nameLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+            textPanel.add(nameLabel);
 
             // 가격 표시
-            JLabel priceLabel = new JLabel(menu.getPrice().toPlainString() + "원", JLabel.CENTER); // 가격 표시
-            priceLabel.setFont(new Font("SansSerif", Font.PLAIN, 12)); // 가격 글꼴 스타일 변경
-            textPanel.add(priceLabel); // 가격 추가
+            JLabel priceLabel = new JLabel(menu.getPrice().toPlainString() + "원", JLabel.CENTER);
+            priceLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
+            textPanel.add(priceLabel);
 
             // 주문하기 버튼
             JButton orderButton = new JButton("주문하기");
-            orderButton.setFont(new Font("SansSerif", Font.PLAIN, 12)); // 버튼 글꼴 스타일 변경
-            orderButton.setBackground(new Color(100, 149, 237)); // 버튼 배경색 (코넬리안 블루)
-            orderButton.setForeground(Color.WHITE); // 글자색 흰색
-            orderButton.setFocusPainted(false); // 포커스 효과 제거
-            orderButton.addActionListener(e -> {
-                addToCart(menu); // 메뉴를 카트에 추가
-            });
-            textPanel.add(orderButton); // 버튼을 textPanel에 추가하여 메뉴 이름 아래에 위치
+            orderButton.setFont(new Font("SansSerif", Font.PLAIN, 12));
+            orderButton.setBackground(new Color(100, 149, 237));
+            orderButton.setForeground(Color.WHITE);
+            orderButton.setFocusPainted(false);
+            orderButton.addActionListener(e -> addToCart(menu));
+            textPanel.add(orderButton);
 
             // 카드 패널에 추가
-            cardPanel.add(imageLabel, BorderLayout.NORTH); // 이미지 추가
-            cardPanel.add(textPanel, BorderLayout.CENTER); // 이름과 가격 및 버튼 패널 추가
+            cardPanel.add(imageLabel, BorderLayout.NORTH);
+            cardPanel.add(textPanel, BorderLayout.CENTER);
 
             // 메뉴 패널에 카드 추가
-            menuPanel.add(cardPanel);
+            menuPanel.add(cardPanel); // 카드 추가
         }
 
-        // 결제하기 버튼 추가
-        JButton paymentButton = new JButton("결제하기");
-        paymentButton.setFont(new Font("SansSerif", Font.BOLD, 14));
-        paymentButton.setBackground(new Color(100, 149, 237)); // 버튼 배경색
-        paymentButton.setForeground(Color.WHITE); // 글자색 흰색
-        paymentButton.addActionListener(e -> processPayment()); // 결제 메서드 호출
-
-        // 결제 및 뒤로가기 버튼을 패널에 추가
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10)); // 버튼을 중앙에 배치
-        buttonPanel.add(paymentButton);
-
-        // 장바구니 패널에 버튼 패널 추가
-        cartPanel.add(buttonPanel, BorderLayout.SOUTH); // 버튼을 하단에 배치
-
-        // 메뉴 패널과 장바구니 패널을 JFrame에 추가
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(new JScrollPane(menuPanel), BorderLayout.CENTER);
-        mainPanel.add(cartPanel, BorderLayout.EAST); // 장바구니 패널 오른쪽에 추가
-
-        add(mainPanel);
-        revalidate(); // 레이아웃 재조정
-        repaint(); // 화면 업데이트
+        // 메뉴 패널을 갱신
+        menuPanel.revalidate();
+        menuPanel.repaint();
     }
-
 
     // 결제 처리 메서드
     private void processPayment() {
@@ -291,7 +310,6 @@ public class CafeView extends JFrame {
             JOptionPane.showMessageDialog(this, "결제 처리 중 오류가 발생했습니다.", "오류", JOptionPane.ERROR_MESSAGE);
         }
     }
-
     public void setController(CafeController controller) {
         this.controller = controller;
     }

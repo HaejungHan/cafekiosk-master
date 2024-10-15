@@ -98,5 +98,9 @@ public class CafeController {
     public void addMenu(MenuDTO menu) {
         service.addMenu(menu);
     }
+
+    public List<MenuDTO> loadMenusByCategory(Category category) {
+        return service.loadMenusByCategory(category); // 특정 카테고리의 메뉴 목록을 로드
+    }
 }
 

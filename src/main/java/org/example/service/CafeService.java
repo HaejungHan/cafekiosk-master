@@ -72,4 +72,8 @@ public class CafeService {
         menuDAO.insertMenu(menu);
     }
 
+    public List<MenuDTO> loadMenusByCategory(Category category) {
+        return menuDAO.loadMenusByCategory(category);
+    }
+
 }
