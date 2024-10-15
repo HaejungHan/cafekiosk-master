@@ -21,6 +21,7 @@ public class AdminView extends JFrame {
     private CafeController controller;
     private JTextField usernameField;
     private JPasswordField passwordField;
+    private JPanel menuPanel;
 
     public AdminView(CafeController controller) {
         this.controller = controller;
@@ -72,7 +73,21 @@ public class AdminView extends JFrame {
         loginButton.addActionListener(e -> login());
         panel.add(loginButton, gbc);
 
+        gbc.gridy = 3; // 다음 줄로 이동
+        JButton backButton = new JButton("뒤로가기");
+        backButton.addActionListener(e -> openPreviousScreen()); // 이전 화면으로 돌아가는 메서드 호출
+        panel.add(backButton, gbc); // 패널에 추가
+
+
         return panel;
+    }
+
+    private void openPreviousScreen() {
+        // 현재 화면 닫기
+        this.setVisible(false);
+        this.dispose();
+
+        new CafeView(controller);
     }
 
     private void login() {
@@ -94,13 +109,24 @@ public class AdminView extends JFrame {
         JPanel mainMenuPanel = new JPanel();
         JButton menuManagementButton = new JButton("메뉴 관리");
         JButton orderHistoryButton = new JButton("이전 주문 내역");
+        JButton backButton = new JButton("뒤로가기");
 
         menuManagementButton.addActionListener(e -> openMenuManagement());
         orderHistoryButton.addActionListener(e -> showOrderHistory());
+        backButton.addActionListener(e -> openLoginScreen());
 
         mainMenuPanel.add(menuManagementButton);
         mainMenuPanel.add(orderHistoryButton);
+        mainMenuPanel.add(backButton);
         add(mainMenuPanel);
+        revalidate(); // UI 업데이트
+        repaint(); // UI 재렌더링
+    }
+
+    private void openLoginScreen() {
+        remove(getContentPane().getComponent(0)); // 메인 메뉴 패널 제거
+        JPanel loginPanel = createLoginPanel(); // 로그인 패널 생성
+        add(loginPanel);
         revalidate(); // UI 업데이트
         repaint(); // UI 재렌더링
     }
@@ -114,6 +140,7 @@ public class AdminView extends JFrame {
         repaint(); // UI 재렌더링
     }
 
+
     private JPanel createMenuManagementPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setPreferredSize(new Dimension(800, 600)); // 전체 프레임 크기 조정
@@ -123,10 +150,10 @@ public class AdminView extends JFrame {
         JList<String> menuList = new JList<>(listModel);
         JScrollPane scrollPane = new JScrollPane(menuList);
         scrollPane.setPreferredSize(new Dimension(300, 400)); // 메뉴 목록 크기 조정
+        scrollPane.setBorder(BorderFactory.createTitledBorder("현재 메뉴 내역")); // 제목 추가
 
-        // 메뉴 내역 제목
+        // 메뉴 내역 제목 패널
         JPanel menuListPanel = new JPanel(new BorderLayout());
-        menuListPanel.setBorder(BorderFactory.createTitledBorder("현재 메뉴 내역")); // 제목 추가
         menuListPanel.add(scrollPane, BorderLayout.CENTER);
 
         // 메뉴 추가 패널
@@ -136,7 +163,6 @@ public class AdminView extends JFrame {
 
         // 카테고리 드롭다운 추가
         JComboBox<Category> categoryComboBox = new JComboBox<>(Category.values()); // enum의 값을 드롭다운에 추가
-
         JTextField imagePathField = new JTextField();
 
         JButton addMenuButton = new JButton("메뉴 추가");
@@ -174,18 +200,15 @@ public class AdminView extends JFrame {
             }
         });
 
-
         // 메뉴 삭제 버튼 클릭 이벤트
         removeMenuButton.addActionListener(e -> {
             int selectedIndex = menuList.getSelectedIndex();
             if (selectedIndex != -1) {
-                // 선택된 메뉴 이름과 가격 추출
                 String selectedMenu = listModel.getElementAt(selectedIndex);
                 String menuName = selectedMenu.split(" - ")[0]; // 메뉴 이름 추출
 
                 // DB에서 메뉴 삭제하는 로직
                 controller.deleteMenu(menuName); // 삭제 메서드 호출
-
                 listModel.remove(selectedIndex); // JList에서 항목 삭제
 
                 // 삭제 성공 메시지
@@ -214,9 +237,15 @@ public class AdminView extends JFrame {
         panel.add(menuListPanel, BorderLayout.CENTER);
         panel.add(inputPanel, BorderLayout.SOUTH);
 
+        // 뒤로가기 버튼 추가
+        JButton backButton = new JButton("뒤로가기");
+        backButton.addActionListener(e -> openMainMenu()); // 메인 메뉴로 돌아가는 메서드 호출
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(backButton);
+        panel.add(buttonPanel, BorderLayout.NORTH); // 패널 상단에 추가
+
         return panel;
     }
-
 
     // 메뉴를 DB에서 불러와서 리스트에 추가하는 메서드
     private void loadMenus(DefaultListModel<String> listModel) {

@@ -23,7 +23,11 @@ public class CafeView extends JFrame {
     private DefaultTableModel cartTableModel;
     private JPanel categoryPanel; // 카테고리 패널
     private JComboBox<Category> categoryComboBox; // 카테고리 콤보 박스
-    private JPanel menuPanel; // 메뉴 패널
+    private JPanel menuPanel;
+
+    public CafeView(CafeController controller) {
+        this.controller = controller;
+    }
 
     public CafeView() {
         setTitle("카페 키오스크");
@@ -146,6 +150,14 @@ public class CafeView extends JFrame {
         cartLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
         cartPanel.add(cartLabel, BorderLayout.NORTH);
 
+        // 삭제 버튼 추가
+        JButton removeButton = new JButton("삭제");
+        removeButton.addActionListener(e -> {
+            int selectedRow = cartTable.getSelectedRow(); // 사용자가 선택한 행
+            removeFromCart(selectedRow);
+        });
+
+
         // 결제하기 버튼 추가
         JButton paymentButton = new JButton("결제하기");
         paymentButton.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -153,10 +165,19 @@ public class CafeView extends JFrame {
         paymentButton.setForeground(Color.WHITE);
         paymentButton.addActionListener(e -> processPayment());
 
+        JButton backButton = new JButton("이전 화면으로");
+        backButton.setFont(new Font("SansSerif", Font.BOLD, 14));
+        paymentButton.setBackground(new Color(100, 149, 237));
+        paymentButton.setForeground(Color.WHITE);
+        backButton.addActionListener(e -> returnToCafeView());
+
+
         // 결제 및 버튼 패널 추가
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
         buttonPanel.add(paymentButton);
+        buttonPanel.add(backButton);
+        buttonPanel.add(removeButton); // 삭제 버튼 추가
         cartPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         // 메인 패널 생성
@@ -243,6 +264,17 @@ public class CafeView extends JFrame {
         menuPanel.repaint();
     }
 
+    private void removeFromCart(int selectedRow) {
+        if (selectedRow >= 0) {
+            cart.remove(selectedRow);
+            cartTableModel.removeRow(selectedRow);
+            JOptionPane.showMessageDialog(null, "주문이 장바구니에서 삭제되었습니다.", "주문 삭제", JOptionPane.INFORMATION_MESSAGE);
+            updateCart();
+        } else {
+            showMessage("삭제할 항목을 선택하세요.");
+        }
+    }
+
     // 결제 처리 메서드
     private void processPayment() {
         if (cart.isEmpty()) {
@@ -298,7 +330,7 @@ public class CafeView extends JFrame {
 
             conn.commit();
             // 결제 완료 메시지
-            JOptionPane.showMessageDialog(this, "결제가 완료되었습니다.\n주문 번호: " + orderId + "\n회원 ID: " + memberId, "결제 완료", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "결제가 완료되었습니다.\n주문 번호: " + orderId + " 제조완료되면 주문번호로 호출됩니다.", "결제 완료", JOptionPane.INFORMATION_MESSAGE);
 
             // 장바구니 초기화
             cart.clear();
@@ -321,6 +353,59 @@ public class CafeView extends JFrame {
         }
     }
 
+    private void returnToCafeView() {
+        // 기존 화면 제거
+        getContentPane().removeAll();
+
+        // 카페 메인 화면을 재구성
+        JPanel mainPanel = new JPanel(new BorderLayout());
+
+        // 버튼 패널 생성
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(1, 2, 10, 10));
+
+        JButton takeoutButton = createStyledButton("Takeout");
+        JButton eatInButton = createStyledButton("Eat In");
+
+        takeoutButton.addActionListener(e -> {
+            currentOrderType = OrderType.TAKEOUT;
+            openMenuView();
+        });
+
+        eatInButton.addActionListener(e -> {
+            currentOrderType = OrderType.EATIN;
+            openMenuView();
+        });
+
+        buttonPanel.add(takeoutButton);
+        buttonPanel.add(eatInButton);
+
+        mainPanel.add(buttonPanel, BorderLayout.CENTER);
+
+        JButton adminButton = new JButton("Admin");
+        adminButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        adminButton.setPreferredSize(new Dimension(100, 40));
+        adminButton.setBackground(Color.LIGHT_GRAY);
+        adminButton.setForeground(Color.BLACK);
+        adminButton.setFocusPainted(false);
+        adminButton.setBorder(BorderFactory.createEtchedBorder());
+
+        adminButton.addActionListener(e -> {
+            new AdminView(controller);
+        });
+
+        JPanel adminPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        adminPanel.add(adminButton);
+        mainPanel.add(adminPanel, BorderLayout.NORTH);
+
+        // 메인 패널을 JFrame에 추가
+        add(mainPanel);
+
+        // 프레임 갱신
+        revalidate();
+        repaint();
+    }
+
     public void updateCart() {
         cartListModel.clear(); // 현재 리스트 비우기
         for (OrderItemDTO item : cart) {
@@ -332,27 +417,40 @@ public class CafeView extends JFrame {
         if (menu != null) {
             String quantityStr = JOptionPane.showInputDialog("수량:");
             int quantity = Integer.parseInt(quantityStr);
-            String temperature = JOptionPane.showInputDialog("온도 (ICED, HOT):");
 
-            BigDecimal totalPrice = menu.getPrice().multiply(BigDecimal.valueOf(quantity));
+            // 온도 선택을 위한 JComboBox 생성
+            String[] temperatures = {"ICED", "HOT"};
+            JComboBox<String> temperatureComboBox = new JComboBox<>(temperatures);
 
-            OrderItemDTO orderItem = new OrderItemDTO();
-            orderItem.initializeOrderItem(menu.getId(), quantity, temperature, totalPrice, menu.getName(), currentOrderType);
+            // 드롭다운을 포함한 대화 상자 생성
+            int option = JOptionPane.showConfirmDialog(null, temperatureComboBox,
+                    "온도 선택", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-            cart.add(orderItem);
+            // 사용자가 OK를 눌렀는지 확인
+            if (option == JOptionPane.OK_OPTION) {
+                String temperature = (String) temperatureComboBox.getSelectedItem();
 
-            // 장바구니에 추가할 문자열 생성
-            String orderDetails = "메뉴명: " + menu.getName() +
-                    ", 수량: " + quantity +
-                    ", 온도: " + temperature +
-                    ", 주문타입: " + currentOrderType +
-                    ", 총 가격: " + totalPrice.toPlainString() + "원";
+                BigDecimal totalPrice = menu.getPrice().multiply(BigDecimal.valueOf(quantity));
+                OrderItemDTO orderItem = new OrderItemDTO();
+                orderItem.initializeOrderItem(menu.getId(), quantity, temperature, totalPrice, menu.getName(), currentOrderType);
 
-            // 장바구니 테이블에 추가
-            cartTableModel.addRow(new Object[]{orderDetails});
+                cart.add(orderItem);
 
-            JOptionPane.showMessageDialog(null, "주문이 장바구니에 추가되었습니다.", "주문 추가", JOptionPane.INFORMATION_MESSAGE);
-            updateCart();
+                // 장바구니에 추가할 문자열 생성
+                String orderDetails = "메뉴명: " + menu.getName() +
+                        ", 수량: " + quantity +
+                        ", 온도: " + temperature +
+                        ", 주문타입: " + currentOrderType +
+                        ", 총 가격: " + totalPrice.toPlainString() + "원";
+
+                // 장바구니 테이블에 추가
+                cartTableModel.addRow(new Object[]{orderDetails});
+
+                JOptionPane.showMessageDialog(null, "주문이 장바구니에 추가되었습니다.", "주문 추가", JOptionPane.INFORMATION_MESSAGE);
+                updateCart();
+            } else {
+                showMessage("주문이 취소되었습니다.");
+            }
         } else {
             showMessage("메뉴를 선택하세요.");
         }
