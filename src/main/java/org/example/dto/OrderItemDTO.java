@@ -10,18 +10,29 @@ public class OrderItemDTO {
     private int quantity;
     private String temperature; // 온도 (ICED, HOT)
     private BigDecimal totalPrice;// 수량
-
     private String menuName;
+    private OrderType orderType;
 
     private CafeController controller;
+
+    public OrderItemDTO() {
+    }
     // 생성자
-    public OrderItemDTO(int menuId, int quantity, String temperature, BigDecimal totalPrice, String menuName) {
+    public OrderItemDTO(int menuId, int quantity, String temperature, BigDecimal totalPrice, OrderType orderType) {
         this.menuId = menuId;
         this.quantity = quantity;
         this.temperature = temperature;
         this.totalPrice = totalPrice;
-        this.controller = controller;
+        this.orderType = orderType;
+    }
+
+    public void initializeOrderItem(int menuId, int quantity, String temperature, BigDecimal totalPrice, String menuName, OrderType orderType) {
+        this.menuId = menuId;
+        this.quantity = quantity;
+        this.temperature = temperature;
+        this.totalPrice = totalPrice;
         this.menuName = menuName;
+        this.orderType = orderType;
     }
 
     public int getOrderId() {
@@ -68,8 +79,12 @@ public class OrderItemDTO {
         return controller.getMenuNameById(menuId); // Controller를 통해 메뉴 이름 가져오기
     }
 
+    public OrderType getOrderType() {
+        return orderType;
+    }
+
     @Override
     public String toString() {
-        return "메뉴명: " + menuName + ", 수량: " + quantity + ", 온도: " + temperature + ", 총 가격: " + totalPrice;
+        return "메뉴명: " + menuName + ", 수량: " + quantity + ", 온도: " + temperature + ", 주문타입: " + orderType +",총 가격: " + totalPrice;
     }
 }

@@ -2,27 +2,27 @@ package org.example.controller;
 
 
 
-import org.example.dto.MemberDTO;
-import org.example.dto.MenuDTO;
-import org.example.dto.OrderDTO;
-import org.example.dto.OrderItemDTO;
+import org.example.dto.*;
 import org.example.service.CafeService;
 import org.example.view.AdminView;
 import org.example.view.CafeView;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 
 public class CafeController {
     private CafeService service;
     private CafeView view;
-    private int memberId;
+    private MemberDTO member;
 
     public CafeController(CafeView view) {
         this.view = view;
         this.service = new CafeService();
+        this.member = new MemberDTO();
         init();
     }
 
@@ -43,32 +43,30 @@ public class CafeController {
         }
     }
 
-    public void setMemberId(int memberId) {
-        this.memberId = memberId;
-    }
-
     private boolean authenticate(String memberId, String password) {
         // 인증 로직 (예: DB에서 확인)
         return true; // 임시로 항상 true 반환
     }
 
-    public void registerMember(String memberId, String password, int auth) {
-        MemberDTO member = new MemberDTO(0, memberId, password, auth);
+    public int registerMember() {
+        String id = member.generateMemberId();
+        String pwd = member.generateRandomPassword();
+        MemberDTO member = new MemberDTO(0, id, pwd, 0);
+        return service.registerMember(member);
+    }
+
+    public void registerAuth(String id, String pwd) {
+        MemberDTO member = new MemberDTO(0, id, pwd, 1);
         service.registerMember(member);
     }
 
-    public void addToCart(MenuDTO menu, int quantity, String temperature) {
-        OrderItemDTO orderItem = new OrderItemDTO(menu.getId(), quantity, temperature, menu.getPrice(), menu.getName()); // 생성자 사용
-        BigDecimal totalPrice = menu.getPrice().multiply(BigDecimal.valueOf(quantity)); // BigDecimal로 계산
-        orderItem.setTotalPrice(totalPrice); // 총 가격 설정
-        service.addToCart(orderItem); // 서비스에 추가
-        view.updateCart(); // 뷰 업데이트
+    public int createOrder(int memberId, List<OrderItemDTO> orderItems) {
+        OrderDTO order = new OrderDTO(0, memberId, LocalDateTime.now(), orderItems);
+        return service.createOrder(order);
     }
 
-    public void createOrder(int memberId, List<OrderItemDTO> orderItems) {
-        OrderDTO order = new OrderDTO(0, memberId, LocalDateTime.now(), orderItems);
-        service.createOrder(order);
-        view.showMessage("주문이 완료되었습니다!");
+    public void createOrderItem(OrderItemDTO orderItem) {
+        service.createOrderItem(orderItem);
     }
 
     public List<MenuDTO> loadMenus() {
@@ -79,6 +77,10 @@ public class CafeController {
 
     public String getMenuNameById(int menuId) {
         return service.getMenuNameById(menuId); // DAO를 통해 메뉴 이름 조회
+    }
+
+    public boolean isMemberExists(int memberId) {
+        return service.isMemberExists(memberId);
     }
 }
 

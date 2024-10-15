@@ -5,10 +5,7 @@ import org.example.dao.MemberDAO;
 import org.example.dao.MenuDAO;
 import org.example.dao.OrderDAO;
 import org.example.dao.OrderItemDAO;
-import org.example.dto.MemberDTO;
-import org.example.dto.MenuDTO;
-import org.example.dto.OrderDTO;
-import org.example.dto.OrderItemDTO;
+import org.example.dto.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,18 +17,19 @@ public class CafeService {
     private MenuDAO menuDAO = new MenuDAO();
     private List<OrderItemDTO> cart = new ArrayList<>();
     private List<MenuDTO> menus;
+    private OrderItemDTO orderItemDTO;
 
-    public void registerMember(MemberDTO member) {
-        memberDAO.addMember(member);
+    public int registerMember(MemberDTO member) {
+        System.out.println("회원이 추가되었습니다: " + member.getMemberId() + ", 비밀번호: " + member.getPassword());
+        return memberDAO.addMember(member);
     }
 
+    public int createOrder(OrderDTO order) {
+        return orderDAO.addOrder(order);
+    }
 
-    public void createOrder(OrderDTO order) {
-        orderDAO.addOrder(order);
-        for (OrderItemDTO item : order.getItems()) {
-            item.setOrderId(order.getId()); // 주문 ID 설정
-            orderItemDAO.addOrderItem(item);
-        }
+    public void createOrderItem(OrderItemDTO orderItem) {
+        orderItemDAO.addOrderItem(orderItem);
     }
 
     public void addToCart(OrderItemDTO orderItem) {
@@ -49,4 +47,9 @@ public class CafeService {
     public String getMenuNameById(int id) {
         return menuDAO.getMenuNameById(id);
     }
+
+    public boolean isMemberExists(int memberId) {
+        return memberDAO.isMemberExists(memberId);
+    }
+
 }

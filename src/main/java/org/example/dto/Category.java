@@ -24,6 +24,6 @@ public enum Category {
                 }
             }
         }
-        throw new IllegalArgumentException("Unknown category: " + category);
+        throw new IllegalArgumentException("카페고리를 지정이 필요합니다.");
     }
 }
