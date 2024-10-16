@@ -3,8 +3,8 @@ package org.example.dto;
 import java.security.SecureRandom;
 
 public class MemberDTO {
-    private int id; // ID를 int로 추가
-    private String memberId; // ID를 userId로 변경
+    private int id;
+    private String memberId;
     private String password;
     private int auth;
 
@@ -30,24 +30,12 @@ public class MemberDTO {
         return memberId;
     }
 
-    public void setMemberId(String memberId) {
-        this.memberId = memberId;
-    }
-
     public String getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public int getAuth() {
         return auth;
-    }
-
-    public void setAuth(int auth) {
-        this.auth = auth;
     }
 
     public String generateRandomPassword() {

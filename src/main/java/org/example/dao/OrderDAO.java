@@ -6,6 +6,7 @@ import org.example.dto.OrderDTO;
 import java.sql.*;
 
 public class OrderDAO {
+
     public int addOrder(OrderDTO order) {
         String sql = "INSERT INTO `Order` (memberId, orderDate) VALUES (?, ?)";
         try (Connection conn = DBConnection.getConnection();
@@ -24,7 +25,7 @@ public class OrderDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return -1; // 실패 시 적절한 에러 처리
+            return -1;
         }
     }
 }

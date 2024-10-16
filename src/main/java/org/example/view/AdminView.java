@@ -6,12 +6,6 @@ import org.example.dto.MenuDTO;
 import org.example.dto.OrderItemDTO;
 
 import javax.swing.*;
-import java.awt.*;
-
-import javax.swing.*;
-import java.awt.*;
-
-import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.math.BigDecimal;
@@ -39,9 +33,9 @@ public class AdminView extends JFrame {
     private JPanel createLoginPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
-        panel.setBackground(new Color(255, 255, 255)); // 배경색 설정
+        panel.setBackground(new Color(255, 255, 255));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10); // 패딩 설정
+        gbc.insets = new Insets(10, 10, 10, 10);
 
         // 사용자 ID 라벨
         gbc.gridx = 0;
@@ -78,7 +72,6 @@ public class AdminView extends JFrame {
         backButton.addActionListener(e -> openPreviousScreen()); // 이전 화면으로 돌아가는 메서드 호출
         panel.add(backButton, gbc); // 패널에 추가
 
-
         return panel;
     }
 
@@ -94,7 +87,6 @@ public class AdminView extends JFrame {
         String username = usernameField.getText();
         String password = new String(passwordField.getPassword());
 
-        // 로그인 처리 로직
         if (controller.authenticateAdmin(username, password)) {
             JOptionPane.showMessageDialog(this, "로그인 성공!", "성공", JOptionPane.INFORMATION_MESSAGE);
             openMainMenu(); // 메인 메뉴 화면으로 전환
@@ -127,8 +119,8 @@ public class AdminView extends JFrame {
         remove(getContentPane().getComponent(0)); // 메인 메뉴 패널 제거
         JPanel loginPanel = createLoginPanel(); // 로그인 패널 생성
         add(loginPanel);
-        revalidate(); // UI 업데이트
-        repaint(); // UI 재렌더링
+        revalidate();
+        repaint();
     }
 
     private void openMenuManagement() {
@@ -136,10 +128,9 @@ public class AdminView extends JFrame {
         remove(getContentPane().getComponent(0)); // 메인 메뉴 패널 제거
         JPanel menuPanel = createMenuManagementPanel();
         add(menuPanel);
-        revalidate(); // UI 업데이트
-        repaint(); // UI 재렌더링
+        revalidate();
+        repaint();
     }
-
 
     private JPanel createMenuManagementPanel() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -150,7 +141,7 @@ public class AdminView extends JFrame {
         JList<String> menuList = new JList<>(listModel);
         JScrollPane scrollPane = new JScrollPane(menuList);
         scrollPane.setPreferredSize(new Dimension(300, 400)); // 메뉴 목록 크기 조정
-        scrollPane.setBorder(BorderFactory.createTitledBorder("현재 메뉴 내역")); // 제목 추가
+        scrollPane.setBorder(BorderFactory.createTitledBorder("현재 메뉴 내역"));
 
         // 메뉴 내역 제목 패널
         JPanel menuListPanel = new JPanel(new BorderLayout());
@@ -317,7 +308,6 @@ public class AdminView extends JFrame {
         revalidate(); // UI 업데이트
         repaint(); // UI 재렌더링
     }
-
 
 }
 

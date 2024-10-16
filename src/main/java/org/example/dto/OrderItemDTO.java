@@ -6,10 +6,10 @@ import java.math.BigDecimal;
 
 public class OrderItemDTO {
     private int orderId;
-    private int menuId; // 메뉴 ID
+    private int menuId;
     private int quantity;
-    private String temperature; // 온도 (ICED, HOT)
-    private BigDecimal totalPrice;// 수량
+    private String temperature;
+    private BigDecimal totalPrice;
     private String menuName;
     private OrderType orderType;
 
@@ -17,8 +17,10 @@ public class OrderItemDTO {
 
     public OrderItemDTO() {
     }
-    // 생성자
-    public OrderItemDTO(int orderId, String menuName, int quantity, String temperature, BigDecimal totalPrice, OrderType orderType) {
+
+    public OrderItemDTO(
+            int orderId, String menuName, int quantity, String temperature,
+            BigDecimal totalPrice, OrderType orderType) {
         this.orderId = orderId;
         this.menuName = menuName;
         this.quantity = quantity;
@@ -27,7 +29,9 @@ public class OrderItemDTO {
         this.orderType = orderType;
     }
 
-    public void initializeOrderItem(int menuId, int quantity, String temperature, BigDecimal totalPrice, String menuName, OrderType orderType) {
+    public void initializeOrderItem(
+            int menuId, int quantity, String temperature, BigDecimal totalPrice,
+            String menuName, OrderType orderType) {
         this.menuId = menuId;
         this.quantity = quantity;
         this.temperature = temperature;
@@ -62,10 +66,6 @@ public class OrderItemDTO {
 
     public String getMenuName() {
         return menuName;
-    }
-
-    public String getMenuNameById(int menuId) {// 현재 메뉴 ID 설정
-        return controller.getMenuNameById(menuId); // Controller를 통해 메뉴 이름 가져오기
     }
 
     public OrderType getOrderType() {

@@ -31,23 +31,6 @@ public class CafeController {
         loadMenus();
     }
 
-    public void login(String memberId, String password) {
-        // 로그인 처리 로직
-        // 인증 성공 시 AdminView로 이동
-        if (authenticate(memberId, password)) {
-            AdminView adminView = new AdminView(this);
-            adminView.setVisible(true);
-            view.dispose(); // 현재 창 닫기
-        } else {
-            view.showMessage("로그인 실패");
-        }
-    }
-
-    private boolean authenticate(String memberId, String password) {
-        // 인증 로직 (예: DB에서 확인)
-        return true; // 임시로 항상 true 반환
-    }
-
     public int registerMember() {
         String id = member.generateMemberId();
         String pwd = member.generateRandomPassword();

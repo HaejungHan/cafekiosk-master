@@ -42,15 +42,13 @@ public class OrderItemDAO {
 
             while (rs.next()) {
                 int orderId = rs.getInt("orderId");
-                String menuName = rs.getString("menuName"); // 메뉴 이름 가져오기
+                String menuName = rs.getString("menuName");
                 int quantity = rs.getInt("quantity");
                 String temperature = rs.getString("temperature");
                 BigDecimal totalPrice = rs.getBigDecimal("totalPrice");
-                String orderTypeString = rs.getString("orderType"); // 데이터베이스에서 가져온 주문 타입 문자열
-
+                String orderTypeString = rs.getString("orderType");
                 OrderType orderType = OrderType.fromString(orderTypeString);
 
-                // OrderItemDTO 객체 생성
                 OrderItemDTO orderItem = new OrderItemDTO(orderId, menuName, quantity, temperature, totalPrice, orderType);
                 orderItems.add(orderItem);
             }

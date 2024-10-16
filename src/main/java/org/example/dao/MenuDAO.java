@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MenuDAO {
+
     public List<MenuDTO> getAllMenus() {
         List<MenuDTO> menus = new ArrayList<>();
         String sql = "SELECT * FROM Menu";
@@ -31,7 +32,7 @@ public class MenuDAO {
                 }
 
                 String imagePath = rs.getString("imagePath");
-                MenuDTO menu = new MenuDTO(id, name, price, category, imagePath); // 생성자 사용
+                MenuDTO menu = new MenuDTO(id, name, price, category, imagePath);
                 menus.add(menu);
             }
         } catch (SQLException e) {
@@ -59,7 +60,6 @@ public class MenuDAO {
 
         return menuName;
     }
-
 
     public void insertMenu(MenuDTO menu) {
         String sql = "INSERT INTO menu (name, price, category, imagePath) VALUES (?, ?, ?, ?)";
@@ -103,18 +103,17 @@ public class MenuDAO {
                 while (rs.next()) {
                     // 결과를 MenuDTO 객체로 변환
                     MenuDTO menu = new MenuDTO(
-                            rs.getInt("id"), // ID 열
-                            rs.getString("name"), // 이름 열
-                            rs.getBigDecimal("price"), // 가격 열
-                            Category.valueOf(rs.getString("category")), // 카테고리 열
-                            rs.getString("imagePath") // 이미지 경로 열
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getBigDecimal("price"),
+                            Category.valueOf(rs.getString("category")),
+                            rs.getString("imagePath")
                     );
-                    menuList.add(menu); // 리스트에 추가
+                    menuList.add(menu);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            // 예외 처리
         }
 
         return menuList; // 카테고리별 메뉴 목록 반환

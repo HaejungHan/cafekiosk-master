@@ -157,7 +157,6 @@ public class CafeView extends JFrame {
             removeFromCart(selectedRow);
         });
 
-
         // 결제하기 버튼 추가
         JButton paymentButton = new JButton("결제하기");
         paymentButton.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -170,7 +169,6 @@ public class CafeView extends JFrame {
         paymentButton.setBackground(new Color(100, 149, 237));
         paymentButton.setForeground(Color.WHITE);
         backButton.addActionListener(e -> returnToCafeView());
-
 
         // 결제 및 버튼 패널 추가
         JPanel buttonPanel = new JPanel();
@@ -258,7 +256,6 @@ public class CafeView extends JFrame {
             // 메뉴 패널에 카드 추가
             menuPanel.add(cardPanel); // 카드 추가
         }
-
         // 메뉴 패널을 갱신
         menuPanel.revalidate();
         menuPanel.repaint();
@@ -313,7 +310,7 @@ public class CafeView extends JFrame {
             }
 
             // 주문 생성 및 DB에 저장
-            int orderId = controller.createOrder(memberId, orderItems); // conn 전달
+            int orderId = controller.createOrder(memberId, orderItems);
             System.out.println("주문ID : " + orderId);
             if (orderId <= 0) {
                 JOptionPane.showMessageDialog(this, "주문 생성에 실패했습니다.", "오류", JOptionPane.ERROR_MESSAGE);
@@ -322,7 +319,7 @@ public class CafeView extends JFrame {
             }
             conn.commit();
 
-
+            // 주문상세내역 생성
             for (OrderItemDTO orderItem : orderItems) {
                 orderItem.setOrderId(orderId);
                 controller.createOrderItem(orderItem); // 주문 항목 추가
@@ -342,6 +339,7 @@ public class CafeView extends JFrame {
             JOptionPane.showMessageDialog(this, "결제 처리 중 오류가 발생했습니다.", "오류", JOptionPane.ERROR_MESSAGE);
         }
     }
+
     public void setController(CafeController controller) {
         this.controller = controller;
     }
@@ -456,9 +454,9 @@ public class CafeView extends JFrame {
         }
     }
 
-
     public void showMessage(String message) {
         JOptionPane.showMessageDialog(this, message);
     }
+
 }
 
